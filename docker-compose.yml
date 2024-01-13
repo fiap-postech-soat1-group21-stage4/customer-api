@@ -1,0 +1,40 @@
+version: '3.9'
+
+networks:
+  customer-network:
+    driver: bridge
+    name: customer-network
+
+services:
+  db:
+    container_name: customer-db
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postuser
+      - POSTGRES_PASSWORD=postpass
+      - POSTGRES_DB=customer
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - customer-network
+    healthcheck:
+      test:  ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  customerapi:
+    container_name: customer-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - customer-network
+    depends_on:
+      db:
+        condition: service_healthy
