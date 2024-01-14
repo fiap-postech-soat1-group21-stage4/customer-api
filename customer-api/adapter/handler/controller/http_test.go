@@ -1,181 +1,3 @@
-// package controller_test
-
-// import (
-// 	"bytes"
-// 	"encoding/json"
-// 	"errors"
-// 	"fmt"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"strings"
-// 	"testing"
-
-// 	"github.com/fiap-postech-soat1-group21/customer-api/customer-api/adapter/handler/controller"
-// 	"github.com/fiap-postech-soat1-group21/customer-api/customer-api/adapter/model"
-// 	"github.com/fiap-postech-soat1-group21/customer-api/customer-api/internal/domain/entity"
-// 	mocks "github.com/fiap-postech-soat1-group21/customer-api/customer-api/internal/domain/port/mocks"
-// 	"github.com/gin-gonic/gin"
-// 	"github.com/google/uuid"
-// 	"github.com/stretchr/testify/assert"
-// 	"github.com/stretchr/testify/mock"
-// )
-
-// var (
-// 	customerModelInput = &model.CustomerRequestDTO{
-// 		Name:  "João",
-// 		CPF:   "12312312312",
-// 		Email: "joao@email.com",
-// 	}
-
-// 	customerEntityInput = &entity.Customer{
-// 		Name:  "João",
-// 		CPF:   "12312312312",
-// 		Email: "joao@email.com",
-// 	}
-
-// 	customerEntityOutput = &entity.Customer{
-// 		ID:    uuid.MustParse("8c2b51bf-7b4c-4a4b-a024-f283576cf190"),
-// 		Name:  "João",
-// 		CPF:   "12312312312",
-// 		Email: "joao@email.com",
-// 	}
-
-// 	customerModelOutput = &model.CustomerResponseDTO{
-// 		ID:    uuid.MustParse("8c2b51bf-7b4c-4a4b-a024-f283576cf190"),
-// 		Name:  "João",
-// 		CPF:   "12312312312",
-// 		Email: "joao@email.com",
-// 	}
-
-// 	retrievePath = "/customer/12312312312"
-
-// 	cpf = &entity.Customer{
-// 		CPF: "12312312312",
-// 	}
-// )
-
-// func TestCreateCustomer(t *testing.T) {
-// 	t.Run("when everything goes as expected; should return response 200 and body", func(t *testing.T) {
-// 		jsonBytes, err := json.Marshal(customerModelInput)
-// 		fmt.Println(jsonBytes)
-// 		if err != nil {
-// 			return
-// 		}
-// 		req := httptest.NewRequest(
-// 			http.MethodPost,
-// 			"/",
-// 			bytes.NewBuffer(jsonBytes))
-// 		w := httptest.NewRecorder()
-
-// 		ctxGin, _ := gin.CreateTestContext(w)
-// 		ctxGin.Request = req
-
-// 		usecaseMock := mocks.NewCustomerUseCase(t)
-// 		usecaseMock.On("CreateCustomer", ctxGin, customerEntityInput).Return(customerEntityOutput, nil).Once()
-
-// 		handler := controller.NewHandler(usecaseMock)
-
-// 		handler.CreateCustomer(ctxGin)
-
-// 		res := w.Result()
-// 		defer res.Body.Close()
-// 		got, err := json.Marshal(customerModelOutput)
-
-// 		assert.NoError(t, err)
-// 		assert.EqualValues(t, strings.TrimSuffix(w.Body.String(), "\n"), string(got))
-// 		assert.Equal(t, http.StatusCreated, res.StatusCode)
-// 		usecaseMock.AssertExpectations(t)
-// 	})
-
-// 	t.Run("when body is invalid; should return response 400", func(t *testing.T) {
-// 		req := httptest.NewRequest(http.MethodPost, "/customer", bytes.NewBuffer([]byte(`{>}`)))
-// 		w := httptest.NewRecorder()
-// 		_, engine := gin.CreateTestContext(w)
-
-// 		usecaseMock := mocks.NewCustomerUseCase(t)
-
-// 		handler := controller.NewHandler(usecaseMock)
-
-// 		engine.POST("/", handler.CreateCustomer)
-// 		engine.ServeHTTP(w, req)
-// 		assert.Equal(t, http.StatusNotFound, w.Code)
-// 		usecaseMock.AssertExpectations(t)
-// 	})
-
-// 	t.Run("when use case return error; should return error", func(t *testing.T) {
-// 		jsonBytes, err := json.Marshal(customerModelInput)
-// 		fmt.Println(jsonBytes)
-// 		if err != nil {
-// 			return
-// 		}
-// 		req := httptest.NewRequest(
-// 			http.MethodPost,
-// 			"/",
-// 			bytes.NewBuffer(jsonBytes))
-
-// 		w := httptest.NewRecorder()
-
-// 		ctxGin, _ := gin.CreateTestContext(w)
-// 		ctxGin.Request = req
-
-// 		usecaseMock := mocks.NewCustomerUseCase(t)
-// 		wantError := errors.New("error")
-// 		usecaseMock.On("CreateCustomer", ctxGin, customerEntityInput).Return(nil, wantError).Once()
-
-// 		handler := controller.NewHandler(usecaseMock)
-
-// 		handler.CreateCustomer(ctxGin)
-
-// 		assert.ErrorContains(t, wantError, "error")
-// 		usecaseMock.AssertExpectations(t)
-// 	})
-// }
-
-// func TestRetrieveCustomer(t *testing.T) {
-// 	t.Run("when everything goes as expected; should return response 200 and body", func(t *testing.T) {
-
-// 		req := httptest.NewRequest(http.MethodGet, retrievePath, nil)
-// 		w := httptest.NewRecorder()
-
-// 		_, engine := gin.CreateTestContext(w)
-
-// 		usecaseMock := mocks.NewCustomerUseCase(t)
-// 		usecaseMock.
-// 			On("RetrieveCustomer", mock.AnythingOfType("*gin.Context"), cpf).Return(customerEntityOutput, nil).Once()
-
-// 		handler := controller.NewHandler(usecaseMock)
-
-// 		engine.GET("/customer/:cpf", handler.RetrieveCustomer)
-// 		engine.ServeHTTP(w, req)
-
-// 		res := w.Result()
-// 		defer res.Body.Close()
-// 		wantGot, err := json.Marshal(customerModelOutput)
-// 		assert.NoError(t, err)
-
-// 		assert.EqualValues(t, strings.TrimSuffix(w.Body.String(), "\n"), string(wantGot))
-// 		assert.Equal(t, http.StatusOK, w.Code)
-// 	})
-// 	t.Run("when use case return error; should return response error", func(t *testing.T) {
-// 		req := httptest.NewRequest(http.MethodGet, retrievePath, nil)
-// 		w := httptest.NewRecorder()
-// 		ctxGin, _ := gin.CreateTestContext(w)
-// 		ctxGin.Request = req
-
-// 		wantError := errors.New("error")
-
-// 		usecaseMock := mocks.NewCustomerUseCase(t)
-// 		usecaseMock.
-// 			On("RetrieveCustomer", ctxGin, mock.AnythingOfType("*entity.Customer")).Return(nil, wantError).Once()
-
-// 		handler := controller.NewHandler(usecaseMock)
-// 		handler.RetrieveCustomer(ctxGin)
-
-// 		assert.ErrorContains(t, wantError, "error")
-// 		usecaseMock.AssertExpectations(t)
-// 	})
-// }
-
 package controller_test
 
 import (
@@ -341,7 +163,7 @@ func TestFeatures(t *testing.T) {
 		TestSuiteInitializer: InitializeTestSuite,
 		Options: &godog.Options{
 			Format:   "pretty",
-			Paths:    []string{"../../../features/"},
+			Paths:    []string{"../../../features/http.feature"},
 			TestingT: t,
 		},
 	}
@@ -353,12 +175,12 @@ func TestFeatures(t *testing.T) {
 
 func InitializeScenario(s *godog.ScenarioContext) {
 	h := &handlerContext{}
-	s.Step(`^the following customer details`, h.theFollowingCustomerDetails)
-	s.Step(`^a request is made to create the customer`, h.aRequestIsMadeToCreateTheCustomer)
-	s.Step(`^the response should have status code (\d+)`, h.theResponseShouldHaveStatusCode)
+	s.Given(`^the following customer details`, h.theFollowingCustomerDetails)
+	s.When(`^a request is made to create the customer`, h.aRequestIsMadeToCreateTheCustomer)
+	s.Then(`^the response should have status code (\d+)`, h.theResponseShouldHaveStatusCode)
 	s.Step(`^the response body should match the expected customer details`, h.theResponseBodyShouldMatchTheExpectedCustomerDetails)
 	s.Given(`^a customer with CPF "([^"]*)" exists`, h.aCustomerWithCPFExists)
-	s.Step(`^a request is made to retrieve the customer`, h.aRequestIsMadeToRetrieveTheCustomer)
+	s.When(`^a request is made to retrieve the customer`, h.aRequestIsMadeToRetrieveTheCustomer)
 
 	s.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 		h.err = nil

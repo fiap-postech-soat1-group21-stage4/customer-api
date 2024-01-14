@@ -130,7 +130,7 @@ func TestFeatures(t *testing.T) {
 		TestSuiteInitializer: InitializeTestSuite,
 		Options: &godog.Options{
 			Format:   "pretty",
-			Paths:    []string{"../../../features/"},
+			Paths:    []string{"../../../features/customer.feature"},
 			TestingT: t,
 		},
 	}
