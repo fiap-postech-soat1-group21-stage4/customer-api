@@ -1,3 +1,7 @@
+.scannerwork/*
+.vscode/*
+.env
+
 # Binários
 *.exe
 *.dll
